@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>short · qr</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0D0D0D;font-family:'Inter',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px;color:#f5f5f5}
+        .app{max-width:700px;width:100%;display:flex;flex-direction:column;gap:24px}
+        
+        .header{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+        .header h1{font-size:1.4rem;font-weight:600;color:#f0f0f0;letter-spacing:-.5px}
+        .header h1 i{color:#6a8;margin-right:8px}
+        .header .badge{background:#1a1a1a;padding:4px 14px;border-radius:30px;font-size:.7rem;color:#666;border:1px solid #2a2a2a}
+        
+        .card{background:#141414;border-radius:20px;border:1px solid #222;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+        .card .label{font-size:.65rem;color:#555;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding-left:4px}
+        
+        .input-group{display:flex;gap:8px;flex-wrap:wrap}
+        .input-group input{flex:1;min-width:160px;background:#0D0D0D;border:1px solid #2a2a2a;border-radius:30px;padding:10px 18px;font-family:'Inter';font-size:.9rem;color:#f0f0f0;outline:0;transition:.2s}
+        .input-group input:focus{border-color:#4a4a4a}
+        .input-group input::placeholder{color:#444}
+        .input-group button{background:#1a2a1a;border:1px solid #2a4a2a;border-radius:30px;padding:10px 24px;color:#90d090;cursor:pointer;transition:.2s;font-family:'Inter';font-size:.9rem;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px}
+        .input-group button:hover{background:#1a3a1a}
+        .input-group button:disabled{opacity:.3;cursor:not-allowed}
+        .input-group button .spinner{display:none;width:16px;height:16px;border:2px solid #2a4a2a;border-top-color:#90d090;border-radius:50%;animation:spin .8s linear infinite}
+        .input-group button.loading .spinner{display:inline-block}
+        .input-group button.loading .btn-text{display:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        
+        .result-box{display:flex;flex-direction:column;gap:12px;padding-top:4px}
+        .result-box .short-link{display:flex;gap:8px;align-items:center;background:#0D0D0D;border:1px solid #2a2a2a;border-radius:30px;padding:8px 16px}
+        .result-box .short-link input{flex:1;background:0;border:0;color:#f0f0f0;font-family:'Inter';font-size:.9rem;outline:0}
+        .result-box .short-link button{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:30px;padding:6px 14px;color:#888;cursor:pointer;transition:.2s;font-size:.75rem}
+        .result-box .short-link button:hover{background:#2a2a2a;color:#ccc}
+        .result-box .short-link .open-btn{background:#1a2a1a;border-color:#2a4a2a;color:#90d090}
+        .result-box .short-link .open-btn:hover{background:#1a3a1a}
+        
+        .qr-section{display:flex;gap:16px;align-items:center;padding:12px 0;flex-wrap:wrap}
+        .qr-section .qr-container{background:#0D0D0D;border:1px solid #2a2a2a;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:center;min-width:140px;min-height:140px}
+        .qr-section .qr-container #qrcode{display:flex;align-items:center;justify-content:center}
+        .qr-section .qr-container #qrcode img{image-rendering:pixelated}
+        .qr-section .qr-info{display:flex;flex-direction:column;gap:6px;flex:1}
+        .qr-section .qr-info .qr-label{font-size:.6rem;color:#555;text-transform:uppercase;letter-spacing:.5px}
+        .qr-section .qr-info .qr-stats{font-size:.7rem;color:#888;display:flex;gap:16px;flex-wrap:wrap}
+        .qr-section .qr-info .qr-stats span{display:flex;align-items:center;gap:4px}
+        .qr-section .qr-actions{display:flex;gap:6px;flex-wrap:wrap}
+        .qr-section .qr-actions button{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:30px;padding:6px 14px;color:#888;cursor:pointer;transition:.2s;font-size:.7rem;display:flex;align-items:center;gap:4px}
+        .qr-section .qr-actions button:hover{background:#2a2a2a;color:#ccc}
+        .qr-section .qr-actions button.primary{background:#1a2a1a;border-color:#2a4a2a;color:#90d090}
+        .qr-section .qr-actions button.primary:hover{background:#1a3a1a}
+        
+        .history{display:flex;flex-direction:column;gap:4px;margin-top:4px;max-height:200px;overflow-y:auto}
+        .history::-webkit-scrollbar{width:3px}
+        .history::-webkit-scrollbar-track{background:0}
+        .history::-webkit-scrollbar-thumb{background:#333;border-radius:12px}
+        .history-item{background:#141414;border-radius:12px;padding:8px 14px;border:1px solid #222;display:flex;justify-content:space-between;align-items:center;font-size:.75rem;animation:fadeIn .2s ease;gap:8px}
+        .history-item .h-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+        .history-item .h-info .h-original{color:#888;font-size:.65rem;word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .history-item .h-info .h-short{color:#8ac;font-weight:500;cursor:pointer;font-size:.75rem}
+        .history-item .h-info .h-short:hover{text-decoration:underline}
+        .history-item .h-time{color:#555;font-size:.55rem}
+        .history-item .h-actions{display:flex;gap:4px}
+        .history-item .h-actions button{background:0;border:0;color:#444;cursor:pointer;padding:2px 6px;border-radius:6px;font-size:.65rem;transition:.2s}
+        .history-item .h-actions button:hover{color:#888;background:#1a1a1a}
+        .history-item .h-actions button.del:hover{color:#e8b0b0}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+        .history-empty{text-align:center;color:#444;font-size:.75rem;padding:12px 8px}
+        
+        .clear-all{background:0;border:1px solid #2a2a2a;border-radius:30px;padding:4px 12px;color:#555;cursor:pointer;font-family:'Inter';font-size:.65rem;transition:.2s;align-self:flex-end}
+        .clear-all:hover{background:#2a1a1a;border-color:#4a2a2a;color:#e8b0b0}
+        
+        .save-status{font-size:.6rem;color:#444;text-align:center;padding:2px 0;transition:.3s}
+        .save-status.saved{color:#6a8}
+        .save-status.error{color:#e8b0b0}
+        
+        .footer{display:flex;justify-content:space-between;font-size:.6rem;color:#333;padding:4px 0;border-top:1px solid #1a1a1a}
+        .footer a{color:#444;text-decoration:none}
+        .footer a:hover{color:#666}
+        
+        .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#f0f0f0;padding:10px 20px;border-radius:30px;font-size:.8rem;font-weight:500;opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;border:1px solid #2a2a2a;max-width:90%}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        
+        @media(max-width:480px){.card{padding:16px}.input-group{flex-direction:column}.input-group button{width:100%;justify-content:center}.qr-section{flex-direction:column;align-items:center}.qr-section .qr-info{width:100%;text-align:center}.qr-section .qr-actions{justify-content:center}}
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1><i class="fas fa-link"></i> short</h1>
+        <span class="badge"><i class="fas fa-qrcode"></i> QR + short</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fas fa-paste"></i> paste your long url</div>
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="https://example.com/very/long/url..." />
+            <button id="shortenBtn">
+                <span class="spinner"></span>
+                <span class="btn-text"><i class="fas fa-bolt"></i> shorten</span>
+            </button>
+        </div>
+
+        <div class="result-box" id="resultBox" style="display:none">
+            <div class="short-link">
+                <i class="fas fa-link" style="color:#444"></i>
+                <input type="text" id="shortUrl" readonly />
+                <button id="copyBtn"><i class="fas fa-copy"></i> copy</button>
+                <button class="open-btn" id="openBtn"><i class="fas fa-external-link-alt"></i> open</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="qrCard" style="display:none">
+        <div class="label"><i class="fas fa-qrcode"></i> qr code</div>
+        <div class="qr-section">
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
+            <div class="qr-info">
+                <div class="qr-label">scan to open</div>
+                <div class="qr-stats">
+                    <span><i class="far fa-calendar"></i> <span id="qrDate">today</span></span>
+                    <span><i class="fas fa-arrow-right"></i> <span id="qrClicks">0</span> clicks</span>
+                </div>
+                <div class="qr-actions">
+                    <button class="primary" id="downloadQrBtn"><i class="fas fa-download"></i> download</button>
+                    <button id="copyQrBtn"><i class="fas fa-copy"></i> copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#555;font-size:.65rem;font-weight:500;letter-spacing:.5px;text-transform:uppercase">history</span>
+        <button class="clear-all" id="clearHistory"><i class="fas fa-trash-alt"></i> clear</button>
+    </div>
+    <div class="history" id="history"></div>
+
+    <div class="save-status" id="saveStatus">ready</div>
+    <div class="footer">
+        <span>short · qr</span>
+        <span><span id="totalCount">0</span> links shortened</span>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+    const $=id=>document.getElementById(id);
+    const urlInput=$('urlInput'), shortenBtn=$('shortenBtn');
+    const resultBox=$('resultBox'), shortUrl=$('shortUrl');
+    const copyBtn=$('copyBtn'), openBtn=$('openBtn');
+    const qrCard=$('qrCard'), qrcodeContainer=$('qrcode');
+    const qrDate=$('qrDate'), qrClicks=$('qrClicks');
+    const downloadQrBtn=$('downloadQrBtn'), copyQrBtn=$('copyQrBtn');
+    const historyEl=$('history'), clearHistory=$('clearHistory');
+    const saveStatus=$('saveStatus'), toast=$('toast');
+    const totalCount=$('totalCount');
+
+    let links = [];
+    let currentShortCode = '';
+    let currentLongUrl = '';
+    let qrInstance = null;
+
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function generateShortCode() {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return code;
+    }
+
+    function isValidUrl(string) {
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (_) { return false; }
+    }
+
+    function getShortUrl(code) {
+        return window.location.origin + window.location.pathname + '?r=' + code;
+    }
+
+    function loadLinks() {
+        try {
+            const data = localStorage.getItem('short_links');
+            if (data) links = JSON.parse(data);
+        } catch(e) { links = []; }
+        renderHistory();
+        updateStats();
+    }
+
+    function saveLinks() {
+        try {
+            localStorage.setItem('short_links', JSON.stringify(links));
+            saveStatus.textContent = 'saved';
+            saveStatus.className = 'save-status saved';
+            setTimeout(() => { saveStatus.className = 'save-status'; }, 1500);
+        } catch(e) {}
+        renderHistory();
+        updateStats();
+    }
+
+    function updateStats() {
+        totalCount.textContent = links.length;
+    }
+
+    function renderHistory() {
+        if (!links.length) {
+            historyEl.innerHTML = '<div class="history-empty">no links shortened yet</div>';
+            return;
+        }
+        historyEl.innerHTML = links.slice().reverse().map((l, i) => {
+            const idx = links.length - 1 - i;
+            const short = getShortUrl(l.code);
+            return `
+                <div class="history-item">
+                    <div class="h-info">
+                        <span class="h-short" onclick="window.open('${short}','_blank')">${short}</span>
+                        <span class="h-original">${l.original}</span>
+                    </div>
+                    <span class="h-time">${l.time || 'now'}</span>
+                    <div class="h-actions">
+                        <button onclick="copyToClipboard('${short}')"><i class="fas fa-copy"></i></button>
+                        <button onclick="window.open('${short}','_blank')"><i class="fas fa-external-link-alt"></i></button>
+                        <button class="del" onclick="deleteLink(${idx})"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.deleteLink = function(idx) {
+        links.splice(idx, 1);
+        saveLinks();
+        showToast('link removed');
+    };
+
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('copied!');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('copied!');
+        });
+    };
+
+    function generateQR(text) {
+        qrcodeContainer.innerHTML = '';
+        qrInstance = new QRCode(qrcodeContainer, {
+            text: text,
+            width: 128,
+            height: 128,
+            colorDark: '#f0f0f0',
+            colorLight: '#0D0D0D',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        qrCard.style.display = 'flex';
+        qrDate.textContent = new Date().toLocaleDateString();
+        qrClicks.textContent = '0';
+    }
+
+    function downloadQR() {
+        const canvas = qrcodeContainer.querySelector('canvas');
+        if (!canvas) return;
+        const link = document.createElement('a');
+        link.download = `qr-${currentShortCode}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('QR code downloaded');
+    }
+
+    function copyQR() {
+        const canvas = qrcodeContainer.querySelector('canvas');
+        if (!canvas) return;
+        canvas.toBlob((blob) => {
+            navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]).then(() => {
+                showToast('QR code copied!');
+            }).catch(() => {
+                showToast('copy failed - try downloading');
+            });
+        });
+    }
+
+    function shortenUrl() {
+        const url = urlInput.value.trim();
+        if (!url) {
+            showToast('enter a URL');
+            return;
+        }
+        if (!isValidUrl(url)) {
+            showToast('invalid URL - include https://');
+            return;
+        }
+
+        shortenBtn.classList.add('loading');
+        shortenBtn.disabled = true;
+
+        setTimeout(() => {
+            const code = generateShortCode();
+
+            const existing = links.find(l => l.code === code);
+            if (existing) {
+
+                const newCode = generateShortCode();
+                currentShortCode = newCode;
+            } else {
+                currentShortCode = code;
+            }
+
+            currentLongUrl = url;
+            const short = getShortUrl(currentShortCode);
+
+            links.push({
+                code: currentShortCode,
+                original: url,
+                time: new Date().toLocaleTimeString(),
+                date: new Date().toISOString()
+            });
+            saveLinks();
+
+            shortUrl.value = short;
+            resultBox.style.display = 'flex';
+
+            generateQR(short);
+
+            showToast('link shortened!');
+            urlInput.value = '';
+            shortenBtn.classList.remove('loading');
+            shortenBtn.disabled = false;
+            saveStatus.textContent = 'link created';
+            saveStatus.className = 'save-status saved';
+            setTimeout(() => { saveStatus.className = 'save-status'; }, 1500);
+        }, 600);
+    }
+
+    shortenBtn.onclick = shortenUrl;
+
+    urlInput.onkeydown = (e) => {
+        if (e.key === 'Enter') shortenUrl();
+    };
+
+    copyBtn.onclick = () => {
+        if (shortUrl.value) {
+            copyToClipboard(shortUrl.value);
+        }
+    };
+
+    openBtn.onclick = () => {
+        if (shortUrl.value) {
+            window.open(shortUrl.value, '_blank');
+        }
+    };
+
+    downloadQrBtn.onclick = downloadQR;
+    copyQrBtn.onclick = copyQR;
+
+    clearHistory.onclick = () => {
+        if (links.length && confirm('clear all shortened links?')) {
+            links = [];
+            saveLinks();
+            resultBox.style.display = 'none';
+            qrCard.style.display = 'none';
+            qrcodeContainer.innerHTML = '';
+            showToast('history cleared');
+        }
+    };
+
+    function handleRedirect() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('r');
+        if (code) {
+            const link = links.find(l => l.code === code);
+            if (link) {
+
+                link.clicks = (link.clicks || 0) + 1;
+                saveLinks();
+                window.location.href = link.original;
+                return;
+            } else {
+
+                document.body.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#0D0D0D;color:#f5f5f5;font-family:Inter,sans-serif;padding:20px;text-align:center">
+                        <i class="fas fa-exclamation-triangle" style="font-size:3rem;color:#e8b0b0;margin-bottom:16px"></i>
+                        <h1 style="font-size:1.5rem;font-weight:600;color:#f0f0f0">Link not found</h1>
+                        <p style="color:#666;margin-top:8px">This short link doesn't exist or has been removed.</p>
+                        <a href="/" style="margin-top:20px;color:#6a8;text-decoration:none;padding:10px 24px;border:1px solid #2a4a2a;border-radius:30px;background:#1a2a1a">go to shortener</a>
+                    </div>
+                `;
+                return;
+            }
+        }
+    }
+
+    loadLinks();
+    handleRedirect();
+    urlInput.focus();
+
+})()
+</script>
+</body>
+</html>
